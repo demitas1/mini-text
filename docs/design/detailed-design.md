@@ -50,6 +50,8 @@ mini-text/
 ├── main.py                          # エントリーポイント
 ├── requirements.txt                 # Python依存関係
 ├── README.md                        # 使用方法
+├── LICENSE.txt                      # MITライセンス
+├── .gitignore                       # Git除外設定
 ├── mini_text/
 │   ├── __init__.py
 │   ├── config/
@@ -72,6 +74,14 @@ mini-text/
 │       │   ├── main_window.ui       # Qt Designer UIファイル
 │       │   └── settings_dialog.ui   # Qt Designer UIファイル
 │       └── models.py                # リストモデル(将来的に使用)
+├── tests/                           # ユニットテスト
+│   ├── __init__.py
+│   ├── test_dependency_checker.py
+│   ├── test_x11_command_executor.py
+│   ├── test_config_manager.py
+│   ├── test_window_service.py       # Phase 2で追加
+│   ├── test_clipboard_service.py    # Phase 2で追加
+│   └── test_text_service.py         # Phase 2で追加
 └── docs/
     ├── design/
     │   ├── application-idea.md      # アイディアメモ
@@ -517,18 +527,19 @@ class SettingsDialog(QDialog):
 
 ## 実装計画
 
-### Phase 1: 基盤構築
+### Phase 1: 基盤構築 ✓ 完了
 **目的**: プロジェクト構造とユーティリティの実装
 
 1. プロジェクト構造の作成
    - ディレクトリ構造作成
    - `__init__.py`ファイル配置
    - `requirements.txt`作成 (PyQt6含む)
+   - `.gitignore`, `README.md`, `LICENSE.txt`作成
 
 2. ユーティリティクラスの実装
    - `X11CommandExecutor`実装
    - `DependencyChecker`実装
-   - 単体テスト(手動)
+   - unittestベースのテスト作成
 
 3. 設定管理の実装
    - `ConfigManager`実装 (JSON形式、`$HOME/.config/mini-text/`に保存)
@@ -538,56 +549,85 @@ class SettingsDialog(QDialog):
 
 **成果物**:
 - 基本プロジェクト構造
-- ユーティリティクラス
-- 設定管理機能
+- ユーティリティクラス (X11CommandExecutor, DependencyChecker)
+- 設定管理機能 (ConfigManager)
+- 14個のユニットテスト
 
-**検証**:
-- `DependencyChecker`で依存関係確認が動作するか
-- `ConfigManager`で設定ファイルの読み書きが動作するか
-- 設定ファイルディレクトリが自動作成されるか
+**検証結果**:
+- ✓ 全14テストが成功
+- ✓ `DependencyChecker`で依存関係確認が動作
+- ✓ `ConfigManager`で設定ファイルの読み書きが動作
+- ✓ 設定ファイルディレクトリが自動作成される
 
 ---
 
-### Phase 2: サービスレイヤー実装
+### Phase 2: サービスレイヤー実装 ✓ 完了
 **目的**: ビジネスロジックの実装
 
 1. `WindowService`実装
-   - ウィンドウ一覧取得
-   - ウィンドウアクティベート
-   - 手動テスト
+   - ウィンドウ一覧取得 (`get_window_list()`)
+   - ウィンドウアクティベート (`activate_window()`)
+   - unittestテスト作成
 
 2. `ClipboardService`実装
-   - クリップボードへの書き込み
-   - クリップボードからの読み込み
-   - 手動テスト
+   - クリップボードへの書き込み (`copy_to_clipboard()`)
+   - クリップボードからの読み込み (`get_from_clipboard()`)
+   - unittestテスト作成
 
 3. `TextService`実装
-   - `send_text()`実装
-   - `receive_text()`実装
-   - 統合テスト
+   - `send_text()`実装 (統合処理)
+   - `receive_text()`実装 (統合処理)
+   - unittestテスト作成
 
 **成果物**:
-- 全サービスクラス
-- コマンドライン版テストスクリプト(オプション)
+- 全サービスクラス (WindowService, ClipboardService, TextService)
+- 18個のユニットテスト (合計32テスト)
 
-**検証**:
-- Pythonスクリプトからウィンドウ一覧が取得できるか
-- クリップボード操作が動作するか
-- テキスト送受信が動作するか
+**検証結果**:
+- ✓ 全32テストが成功 (Phase 1: 14 + Phase 2: 18)
+- ✓ WindowService: ウィンドウ一覧取得とアクティベートが動作
+- ✓ ClipboardService: クリップボード操作が動作
+- ✓ TextService: テキスト送受信の統合処理が動作
+- ✓ SOLID原則(SRP, DIP)に準拠した設計
 
 ---
 
 ### Phase 3: 基本UI実装
 **目的**: 最小限のGUIで動作確認
 
-1. Qt Designer でUIファイル作成
-   - `mini_text/ui/resources/main_window.ui`作成
-   - レイアウト設計:
-     - ウィンドウ一覧 (QListWidget)
-     - テキストボックス (QPlainTextEdit)
-     - 送信/コピー/リフレッシュボタン (QPushButton)
-     - ステータスバー (QStatusBar)
-     - メニューバー (QMenuBar)
+**前提条件**: Qt6 Designerのインストールが必要
+```bash
+# Ubuntu/Debianの場合
+sudo apt install qt6-tools-dev qt6-tools-dev-tools
+
+# インストール確認
+which designer-qt6
+```
+
+**UIファイル作成オプション**:
+
+**オプション1: Qt Designerを使用 (推奨)**
+1. Qt Designer (designer-qt6)を起動
+2. Main Window テンプレートを選択
+3. GUI上でウィジェットを配置:
+   - ウィンドウ一覧 (QListWidget) - オブジェクト名: `window_list`
+   - テキストボックス (QPlainTextEdit) - オブジェクト名: `text_edit`
+   - 送信ボタン (QPushButton) - オブジェクト名: `send_button`
+   - コピーボタン (QPushButton) - オブジェクト名: `copy_button`
+   - リフレッシュボタン (QPushButton) - オブジェクト名: `refresh_button`
+   - ステータスバー (QStatusBar) - オブジェクト名: `statusBar`
+4. `mini_text/ui/resources/main_window.ui`として保存
+
+**オプション2: .uiファイルを直接作成**
+- XMLフォーマットで`.ui`ファイルを直接記述
+- Claude Codeが.uiファイルのXMLを生成可能
+- Qt Designerがない環境でも実装を進められる
+- 後でQt Designerで微調整可能
+
+**実装手順**:
+
+1. UIファイルの準備 (上記オプションのいずれかで作成)
+   - `mini_text/ui/resources/main_window.ui`
 
 2. `MainWindow`の実装
    - `.ui`ファイルをロード (`uic.loadUi()`)
@@ -602,14 +642,14 @@ class SettingsDialog(QDialog):
 
 **成果物**:
 - 動作する基本的なGUIアプリケーション
-- Qt Designer UIファイル
+- Qt Designer UIファイル (または直接作成した.uiファイル)
 
 **検証**:
 - アプリケーションが起動するか
 - ウィンドウリストが表示されるか
 - テキスト送信が動作するか
 - テキストコピーが動作するか
-- Qt DesignerでUIを開いて編集できるか
+- (Qt Designerがあれば) UIを開いて編集できるか
 
 ---
 

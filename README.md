@@ -33,6 +33,12 @@ python main.py
 - **テキストコピー**: 選択したウィンドウからテキストを取得
 - **設定管理**: タイミング設定をGUIから変更可能
 
+## テスト
+
+```bash
+python -m unittest discover -s tests -v
+```
+
 ## 設定ファイル
 
 `$HOME/.config/mini-text/config.json`

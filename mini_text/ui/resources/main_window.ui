@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>mini-text</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QGroupBox" name="groupBox_windows">
+       <property name="title">
+        <string>ウィンドウ一覧</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QListWidget" name="window_list"/>
+        </item>
+        <item>
+         <widget class="QPushButton" name="refresh_button">
+          <property name="text">
+           <string>リフレッシュ</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QGroupBox" name="groupBox_text">
+       <property name="title">
+        <string>テキスト</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QPlainTextEdit" name="text_edit">
+          <property name="placeholderText">
+           <string>ここにテキストを入力...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout">
+          <item>
+           <widget class="QPushButton" name="send_button">
+            <property name="text">
+             <string>送信</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="copy_button">
+            <property name="text">
+             <string>コピー</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu_file">
+    <property name="title">
+     <string>ファイル(&amp;F)</string>
+    </property>
+    <addaction name="action_settings"/>
+    <addaction name="separator"/>
+    <addaction name="action_quit"/>
+   </widget>
+   <addaction name="menu_file"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_settings">
+   <property name="text">
+    <string>設定(&amp;S)</string>
+   </property>
+  </action>
+  <action name="action_quit">
+   <property name="text">
+    <string>終了(&amp;Q)</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
