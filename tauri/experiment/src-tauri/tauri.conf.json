@@ -4,15 +4,17 @@
   "version": "0.1.0",
   "identifier": "com.demitas.experiment",
   "build": {
-    "frontendDist": "../src"
+    "frontendDist": "../ui"
   },
   "app": {
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "experiment",
-        "width": 800,
-        "height": 600
+        "title": "Tauri Clipboard & IME Test",
+        "width": 700,
+        "height": 600,
+        "resizable": true,
+        "fullscreen": false
       }
     ],
     "security": {
