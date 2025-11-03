@@ -42,3 +42,9 @@ config.json
 # Qt Designer backup
 *.ui.autosave
 *.ui~
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover

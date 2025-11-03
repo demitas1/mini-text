@@ -1,5 +1,6 @@
 """設定ファイル管理"""
 
+import copy
 import json
 import os
 from pathlib import Path
@@ -25,7 +26,7 @@ class ConfigManager:
             config_path: 設定ファイルのパス (Noneの場合は $HOME/.config/mini-text/config.json)
         """
         self.config_path = config_path or self._get_default_config_path()
-        self.config = self.DEFAULT_CONFIG.copy()
+        self.config = copy.deepcopy(self.DEFAULT_CONFIG)
         self.load_config()
 
     def _get_default_config_path(self) -> str:
@@ -43,7 +44,7 @@ class ConfigManager:
         """設定ファイルを読み込む。ファイルが存在しない場合はデフォルト値を使用"""
         if not os.path.exists(self.config_path):
             # ファイルが存在しない場合はデフォルト値を使用
-            self.config = self.DEFAULT_CONFIG.copy()
+            self.config = copy.deepcopy(self.DEFAULT_CONFIG)
             return
 
         try:
@@ -51,7 +52,7 @@ class ConfigManager:
                 loaded_config = json.load(f)
 
             # デフォルト設定とマージ（不足しているキーがあっても動作するように）
-            self.config = self.DEFAULT_CONFIG.copy()
+            self.config = copy.deepcopy(self.DEFAULT_CONFIG)
             if "window" in loaded_config:
                 self.config["window"].update(loaded_config["window"])
             if "timing" in loaded_config:
@@ -60,7 +61,7 @@ class ConfigManager:
         except (json.JSONDecodeError, IOError) as e:
             # 読み込み失敗時はデフォルト値を使用
             print(f"警告: 設定ファイルの読み込みに失敗しました: {e}")
-            self.config = self.DEFAULT_CONFIG.copy()
+            self.config = copy.deepcopy(self.DEFAULT_CONFIG)
 
     def save_config(self) -> None:
         """現在の設定をファイルに保存"""

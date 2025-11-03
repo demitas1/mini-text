@@ -1,18 +1,36 @@
 # mini-text プロジェクト状況サマリー
 
-**最終更新**: 2025-11-02
+**最終更新**: 2025-11-03
 
 ## プロジェクト概要
 
-Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受信を支援するPyQt6アプリケーション。
+Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受信を支援するデスクトップアプリケーション。
 
-## 実装進捗
+## 実装バリエーション
+
+### PyQt6実装 (`pyqt/`)
+
+**ステータス**: Phase 3完了、IME問題により中断
+
+- **長所**: pip完結、Qt Designerによる視覚的UI設計
+- **短所**: IME（日本語入力）が動作しない
+- **詳細**: `docs/design/pyqt/ime-integration-issue.md`参照
+
+### GTK4実装 (`gtk4/`) ⭐ 推奨
+
+**ステータス**: Phase 3完了、動作確認済み ✓
+
+- **長所**: IME統合が正常動作、日本語入力対応
+- **短所**: システムPyGObjectに依存
+- **詳細**: `docs/design/gtk4-detailed-design.md`参照
+
+## GTK4実装進捗
 
 | Phase | 内容 | 状態 | 完了日 |
 |-------|------|------|--------|
-| Phase 1 | 基盤構築 | ✓ 完了 | 2025-11-02 |
-| Phase 2 | サービスレイヤー実装 | ✓ 完了 | 2025-11-02 |
-| Phase 3 | 基本UI実装 | ✓ 完了 | 2025-11-02 |
+| Phase 1 | 基盤構築 | ✓ 完了 | 2025-11-03 |
+| Phase 2 | サービスレイヤー実装 | ✓ 完了 | 2025-11-03 |
+| Phase 3 | 基本UI実装 | ✓ 完了 | 2025-11-03 |
 | Phase 4 | 設定機能実装 | 未着手 | - |
 | Phase 5 | 改善・テスト | 未着手 | - |
 
@@ -20,49 +38,61 @@ Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受�
 
 ### 実装内容
 - プロジェクト構造作成
-- `X11CommandExecutor`: xdotool/xclip実行
-- `DependencyChecker`: 依存関係チェック
-- `ConfigManager`: JSON設定管理（`$HOME/.config/mini-text/config.json`）
-- unittestベースのテスト構造
+- PyQt6からの共通レイヤーコピー（独立ファイル）
+  - `ConfigManager`: JSON設定管理
+  - `X11CommandExecutor`: xdotool/xclip実行
+  - `DependencyChecker`: 依存関係チェック
+- pytest環境構築
+- venv作成（`--system-site-packages`）
 
 ### 成果物
-- 14個のユニットテスト（全て成功）
-- `.gitignore`, `README.md`, `LICENSE.txt`
+- 14個のpytestテスト（全て成功）
+- requirements.txt（システムPyGObject使用）
+- conftest.py（フィクスチャ定義）
 
 ## Phase 2: サービスレイヤー実装 ✓
 
 ### 実装内容
-- `WindowService`: ウィンドウ一覧取得・アクティベート
-- `ClipboardService`: クリップボード操作
-- `TextService`: テキスト送受信統合（SRP/DIP原則に準拠）
+- PyQt6からサービスクラスをコピー
+  - `WindowService`: ウィンドウ一覧取得・アクティベート
+  - `ClipboardService`: クリップボード操作
+  - `TextService`: テキスト送受信統合
+- unittestからpytest形式にテスト変換
+- ConfigManagerのバグ修正（浅いコピー問題）
 
 ### 成果物
-- 18個のユニットテスト（合計32テスト、全て成功）
-- SOLID原則に準拠した設計
+- 18個のpytestテスト（合計32テスト、全て成功）
+- SOLID原則に準拠した設計（PyQt6から継承）
 
 ## Phase 3: 基本UI実装 ✓
 
 ### 実装内容
-- `main_window.ui`: Qt Designer形式のUIファイル（XML直接作成）
-- `MainWindow`: PyQt6メインウィンドウ（uic.loadUi()）
-- `main.py`: エントリーポイント、依存関係チェック
-- fcitx5統合対応（環境変数設定、プラグインパス設定）
+- Glade形式のUIファイル作成（`main_window.ui`）
+- GTK4 MainWindowクラス実装
+  - Gtk.Template使用
+  - シグナル接続
+  - 常に最前面表示
+- main.pyエントリーポイント作成
+  - Gtk.Applicationベース
+  - 依存関係チェック統合
+  - アクション設定（設定、終了）
 
-### 動作確認済み機能
+### 実装済み機能
 - ✓ アプリケーション起動
 - ✓ ウィンドウ一覧表示・リフレッシュ
-- ✓ 常に最前面表示
-- ✓ テキスト送信（英数字）
-- ✓ テキストコピー
+- ✓ テキスト送信機能
+- ✓ テキストコピー機能
+- ✓ 常に最前面表示（GTK4の制限あり）
 - ✓ ウィンドウサイズ保存・復元
 - ✓ エラーハンドリング
+- ✓ ステータスバー表示
 - ✓ メニュー（設定は未実装）
 
-### 既知の問題
-- ✗ **IME（日本語入力）が動作しない**
-  - 原因: venv内PyQt6とシステムfcitx5プラグインのQt6バージョン不一致
-  - 詳細: `docs/design/ime-integration-issue.md`
-  - 影響: 日本語入力不可、英数字のみ使用可能
+### 動作確認済み ✓
+- ✓ 実際のGUI起動テスト
+- ✓ **IME/日本語入力テスト（成功！）**
+- ✓ ウィンドウ間テキスト送受信テスト（Inkscapeで確認）
+- ✓ エラーケーステスト
 
 ## テスト結果
 
@@ -74,99 +104,130 @@ Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受�
 ```
 
 ### テスト内訳
-- Phase 1ユーティリティ: 14テスト
-- Phase 2サービス: 18テスト
-- Phase 3 UI: 手動確認
+- ConfigManager: 7テスト
+- DependencyChecker: 2テスト
+- X11CommandExecutor: 5テスト
+- WindowService: 5テスト
+- ClipboardService: 5テスト
+- TextService: 8テスト
 
-## 現在の課題
+## Phase 3で解決した問題
 
-### 1. IME統合問題（高優先度）
+### クリップボードコピーのタイムアウト問題
+**問題**: `xclip`コマンドがクリップボードにテキストをコピーする際にタイムアウトが発生
 
-**問題**: fcitx5/mozcによる日本語入力ができない
+**原因**: xclipはクリップボード所有権を保持し続けるためプロセスが終了せず、`subprocess.run()`が待機し続ける
 
-**原因**:
-- venv環境のPyQt6 (6.10.0) とシステムQt6プラグインのABI不一致
-- Qt6プライベートAPIの互換性なし
+**解決策**:
+1. `subprocess.Popen()`を使用してバックグラウンドで起動
+2. `start_new_session=True`で別セッションとして起動
+3. `communicate(timeout=0.5)`でデータを渡し、タイムアウトを正常と判断
+4. `-i`フラグを追加して明示的に入力モードを指定
 
-**解決策の選択肢**:
-1. システムPyQt6を使用（`--system-site-packages`）
-2. PySide6に移行（要検証）
-3. Tkinterに移行（大規模書き換え）
-4. GTK4に移行（大規模書き換え）
-
-**推奨**: まず選択肢1でPhase 4-5を完了し、後で選択肢2を検証
+**影響ファイル**:
+- `gtk4/mini_text/utils/x11_command_executor.py:25-61`
+- `gtk4/mini_text/services/clipboard_service.py:27-30`
+- `gtk4/tests/test_clipboard_service.py:32-33, 91-93`
 
 ## 次のステップ
 
-### 短期（Phase 4-5完了）
-1. IME問題の暫定対応検討
-2. Phase 4: 設定ダイアログ実装
-3. Phase 5: UI/UX改善、統合テスト、ドキュメント整備
+### 短期（Phase 4）
+1. Phase 4: 設定ダイアログ実装
+   - タイミング設定のGUI
+   - 設定の保存・読み込み
 
-### 中長期（リファクタリング）
-1. PySide6での動作検証
-2. 必要に応じてUIツールキットの移行検討
-3. 追加機能の実装（拡張案参照）
+### 中期（Phase 5）
+1. Phase 5: UI/UX改善、統合テスト、ドキュメント整備
+   - キーボードショートカット
+   - ウィンドウ検索機能
+   - エラーメッセージの改善
+
+### 長期（オプション）
+1. 追加機能の実装
+2. パッケージング（.deb等）
+3. リリース準備
 
 ## ファイル構成
 
 ```
 mini-text/
-├── main.py                    # エントリーポイント
-├── requirements.txt           # PyQt6 6.6.0+
+├── gtk4/                      # GTK4実装（推奨）
+│   ├── main.py                # エントリーポイント
+│   ├── requirements.txt       # pytest, pytest-cov
+│   ├── README.md              # GTK4実装ドキュメント
+│   ├── TESTING.md             # 動作確認手順
+│   ├── mini_text/
+│   │   ├── config/            # 設定管理
+│   │   ├── utils/             # ユーティリティ
+│   │   ├── services/          # サービスレイヤー
+│   │   └── ui/                # UIレイヤー
+│   │       ├── main_window.py
+│   │       └── resources/
+│   │           └── main_window.ui
+│   └── tests/                 # pytest (32テスト)
+├── pyqt/                      # PyQt6実装（IME問題により中断）
+│   └── ...
+├── docs/
+│   ├── design/
+│   │   ├── application-idea.md       # 共通アイディア
+│   │   ├── gtk4-detailed-design.md   # GTK4設計書
+│   │   └── pyqt/                     # PyQt6関連ドキュメント
+│   └── examples/
+│       ├── typeinto.sh
+│       └── copyfrom.sh
 ├── README.md                  # プロジェクト概要
-├── LICENSE.txt                # MIT License
 ├── STATUS.md                  # このファイル
-├── TESTING.md                 # Phase 3動作確認手順
-├── mini_text/                 # メインパッケージ
-│   ├── config/                # 設定管理
-│   ├── utils/                 # ユーティリティ
-│   ├── services/              # サービスレイヤー
-│   └── ui/                    # UIレイヤー
-│       └── resources/
-│           └── main_window.ui
-├── tests/                     # ユニットテスト
-│   └── *.py (32テスト)
-└── docs/
-    ├── design/
-    │   ├── application-idea.md
-    │   ├── detailed-design.md
-    │   └── ime-integration-issue.md
-    └── examples/
-
-26ファイル、32ユニットテスト
+├── CLAUDE.md                  # 開発ガイドライン
+└── LICENSE.txt
 ```
 
-## 開発メモ
+## 技術スタック
 
-### 学んだこと
-1. venv環境でのGUIアプリケーション開発の課題
-   - システム統合（IME、テーマ）がvenvの隔離性と衝突
-   - C++バインディング（PyQt6）はシステムライブラリとの互換性が重要
-
-2. 早期の環境検証の重要性
-   - IME統合のような重要機能は設計初期段階で検証すべき
-   - プロトタイプでの動作確認が不可欠
-
-3. SOLID原則の有効性
-   - サービスレイヤーの分離により、テストが容易
-   - 将来的なUIツールキット変更時、ビジネスロジックは再利用可能
-
-### 技術スタック
+### GTK4実装
 - Python 3.12
-- PyQt6 6.10.0
+- GTK 4.0
+- PyGObject 3.48.2（システムパッケージ）
+- pytest 8.4.2
 - xdotool, xclip
-- unittest
-- JSON設定管理
 
 ### 開発環境
 - Ubuntu 24.04.3 LTS
 - KDE (X11)
 - fcitx5 5.1.7 + mozc
-- venv仮想環境
+- venv（--system-site-packages）
+
+## 学んだこと
+
+### PyQt6実装での課題
+1. venv環境でのIME統合問題
+   - venv内PyQt6とシステムfcitx5プラグインのバージョン不一致
+   - Qt6プライベートAPIの互換性なし
+
+2. 解決策の模索
+   - システムPyQt6使用（`--system-site-packages`）
+   - 他のUIツールキット検討 → GTK4採用
+
+### GTK4実装での成功
+1. システムPyGObject使用
+   - `--system-site-packages`で問題解決
+   - fcitx5/mozcとの統合が安定
+
+2. SOLID原則の有効性
+   - サービスレイヤーの分離により、UIツールキット変更が容易
+   - PyQt6からGTK4への移行がスムーズ
+
+3. pytest採用
+   - unittestより簡潔で読みやすい
+   - フィクスチャの再利用が容易
+
+4. xclipの仕様理解
+   - クリップボード所有権保持のためプロセスが終了しない仕様
+   - `subprocess.Popen()`でバックグラウンド実行することで解決
+   - X11のクリップボードメカニズムの理解が深まった
 
 ## 参考リンク
 
+- [GTK4ドキュメント](https://docs.gtk.org/gtk4/)
+- [PyGObjectドキュメント](https://pygobject.readthedocs.io/)
+- [Gladeドキュメント](https://glade.gnome.org/)
 - [SOLID原則](https://en.wikipedia.org/wiki/SOLID)
-- [PyQt6ドキュメント](https://www.riverbankcomputing.com/static/Docs/PyQt6/)
-- [fcitx5](https://github.com/fcitx/fcitx5)

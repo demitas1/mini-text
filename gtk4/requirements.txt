@@ -1,3 +1,6 @@
-PyGObject>=3.42.0
+# PyGObjectはシステムパッケージを使用
+# venvは --system-site-packages で作成すること
+# システム要件: python3-gi, gir1.2-gtk-4.0
+
 pytest>=7.0.0
 pytest-cov>=3.0.0

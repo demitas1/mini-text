@@ -24,9 +24,10 @@ class ClipboardService:
         Returns:
             tuple[bool, str]: (成功したか, エラーメッセージ)
         """
-        # xclip -selection clipboard でクリップボードにコピー
+        # xclip -i -selection clipboard でクリップボードにコピー
+        # -i フラグで明示的に入力モードを指定
         success, stdout, stderr = self.executor.execute(
-            ["xclip", "-selection", "clipboard"], input_data=text
+            ["xclip", "-i", "-selection", "clipboard"], input_data=text
         )
 
         if not success:

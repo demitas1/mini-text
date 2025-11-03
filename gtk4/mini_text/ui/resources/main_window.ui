@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Glade形式のUIファイル - GTK4用 -->
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <template class="MainWindow" parent="GtkApplicationWindow">
+    <property name="title">mini-text</property>
+    <property name="default-width">800</property>
+    <property name="default-height">600</property>
+    <child>
+      <object class="GtkBox" id="main_box">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkBox" id="menu_box">
+            <property name="orientation">horizontal</property>
+            <child>
+              <object class="GtkMenuButton" id="menu_button">
+                <property name="label">メニュー</property>
+                <property name="menu-model">main_menu</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkPaned" id="paned">
+            <property name="orientation">horizontal</property>
+            <property name="vexpand">true</property>
+            <property name="position">300</property>
+            <child>
+              <object class="GtkBox" id="left_box">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <property name="margin-start">6</property>
+                <property name="margin-end">6</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <child>
+                  <object class="GtkLabel" id="window_list_label">
+                    <property name="label">ウィンドウ一覧</property>
+                    <property name="halign">start</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="scrolled_window">
+                    <property name="vexpand">true</property>
+                    <property name="hscrollbar-policy">automatic</property>
+                    <property name="vscrollbar-policy">automatic</property>
+                    <child>
+                      <object class="GtkListBox" id="window_list">
+                        <property name="selection-mode">single</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="refresh_button">
+                    <property name="label">リフレッシュ</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="right_box">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+                <property name="margin-start">6</property>
+                <property name="margin-end">6</property>
+                <property name="margin-top">6</property>
+                <property name="margin-bottom">6</property>
+                <child>
+                  <object class="GtkLabel" id="text_label">
+                    <property name="label">テキスト</property>
+                    <property name="halign">start</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="text_scrolled">
+                    <property name="vexpand">true</property>
+                    <property name="hscrollbar-policy">automatic</property>
+                    <property name="vscrollbar-policy">automatic</property>
+                    <child>
+                      <object class="GtkTextView" id="text_view">
+                        <property name="wrap-mode">word-char</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkBox" id="button_box">
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">6</property>
+                    <property name="homogeneous">true</property>
+                    <child>
+                      <object class="GtkButton" id="send_button">
+                        <property name="label">送信</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="copy_button">
+                        <property name="label">コピー</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkLabel" id="status_label">
+            <property name="halign">start</property>
+            <property name="margin-start">6</property>
+            <property name="margin-end">6</property>
+            <property name="margin-top">3</property>
+            <property name="margin-bottom">3</property>
+            <property name="label">準備完了</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+  <menu id="main_menu">
+    <section>
+      <item>
+        <attribute name="label">設定</attribute>
+        <attribute name="action">app.settings</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label">終了</attribute>
+        <attribute name="action">app.quit</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>
