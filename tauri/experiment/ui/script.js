@@ -39,22 +39,25 @@ sendButton.addEventListener('click', async () => {
     }
 });
 
-// コピーボタン: クリップボードの内容をテキストボックスにペースト
+// コピーボタン: xdotool を使用してアクティブウィンドウからテキストをコピー
 copyButton.addEventListener('click', async () => {
     try {
-        const clipboardText = await readText();
+        updateStatus('3秒後にアクティブウィンドウからコピーします...', 'info');
 
-        if (clipboardText === null || clipboardText === undefined) {
-            updateStatus('クリップボードにテキストがありません', 'error');
+        // Tauri コマンドを呼び出し
+        const copiedText = await window.__TAURI_INTERNALS__.invoke('copy_from_active_window');
+
+        if (!copiedText || copiedText.trim() === '') {
+            updateStatus('コピーされたテキストが空です', 'error');
             return;
         }
 
-        textArea.value = clipboardText;
-        updateStatus(`クリップボードから貼り付けました (${clipboardText.length}文字)`, 'success');
+        textArea.value = copiedText;
+        updateStatus(`アクティブウィンドウからコピーしました (${copiedText.length}文字)`, 'success');
 
     } catch (error) {
-        console.error('クリップボードからの読み取りエラー:', error);
-        updateStatus(`エラー: ${error.message}`, 'error');
+        console.error('アクティブウィンドウからのコピーエラー:', error);
+        updateStatus(`エラー: ${error}`, 'error');
     }
 });
 
