@@ -592,10 +592,10 @@ class SettingsDialog(QDialog):
 
 ---
 
-### Phase 3: 基本UI実装
+### Phase 3: 基本UI実装 ✓ 完了（IME問題あり）
 **目的**: 最小限のGUIで動作確認
 
-**前提条件**: Qt6 Designerのインストールが必要
+**前提条件**: Qt6 Designerのインストールが必要（オプション）
 ```bash
 # Ubuntu/Debianの場合
 sudo apt install qt6-tools-dev qt6-tools-dev-tools
@@ -642,14 +642,24 @@ which designer-qt6
 
 **成果物**:
 - 動作する基本的なGUIアプリケーション
-- Qt Designer UIファイル (または直接作成した.uiファイル)
+- `main_window.ui` (XML形式で直接作成)
+- `MainWindow`クラス (uic.loadUi()でUIロード)
+- `main.py` (エントリーポイント)
 
-**検証**:
-- アプリケーションが起動するか
-- ウィンドウリストが表示されるか
-- テキスト送信が動作するか
-- テキストコピーが動作するか
-- (Qt Designerがあれば) UIを開いて編集できるか
+**検証結果**:
+- ✓ アプリケーションが起動する
+- ✓ ウィンドウリストが表示される
+- ✓ ウィンドウが常に最前面に表示される
+- ✓ リフレッシュボタンでウィンドウリスト更新
+- ✓ テキスト送信機能が動作（英数字のみ）
+- ✓ テキストコピー機能が動作
+- ✓ ウィンドウサイズの保存・復元が動作
+- ✗ **IME（日本語入力）が動作しない** → 既知の問題
+- ⏳ Qt Designerでの編集確認（未実施）
+
+**既知の問題**:
+- venv環境のPyQt6とシステムfcitx5プラグインのバージョン不一致によりIMEが動作しない
+- 詳細: `docs/design/ime-integration-issue.md`参照
 
 ---
 

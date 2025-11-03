@@ -2,6 +2,7 @@
 """mini-text アプリケーションのエントリーポイント"""
 
 import sys
+import os
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from mini_text.utils.dependency_checker import DependencyChecker
@@ -42,6 +43,22 @@ def check_dependencies() -> bool:
 
 def main():
     """メイン関数"""
+    # fcitx5のIM設定（QApplication作成前に設定）
+    os.environ.setdefault("QT_IM_MODULE", "fcitx5")
+    os.environ.setdefault("XMODIFIERS", "@im=fcitx5")
+    os.environ.setdefault("GTK_IM_MODULE", "fcitx5")
+
+    # Qt6のプラグインパスにシステムのQt6プラグインディレクトリを追加
+    # fcitx5-frontend-qt6がインストールされている場所
+    # Ubuntu 24.04では /lib/x86_64-linux-gnu/qt6/plugins にある
+    system_qt6_plugins = "/lib/x86_64-linux-gnu/qt6/plugins"
+    if os.path.exists(system_qt6_plugins):
+        current_plugin_path = os.environ.get("QT_PLUGIN_PATH", "")
+        if current_plugin_path:
+            os.environ["QT_PLUGIN_PATH"] = f"{system_qt6_plugins}:{current_plugin_path}"
+        else:
+            os.environ["QT_PLUGIN_PATH"] = system_qt6_plugins
+
     # 依存関係チェック（Qt初期化前に実行）
     if not check_dependencies():
         sys.exit(1)
