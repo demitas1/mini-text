@@ -5,7 +5,7 @@
 
 ## 前提条件
 
-- xdotool, xclipがインストール済み
+- xdotoolがインストール済み（xclipは不要）
 - X11デスクトップ環境で実行
 - システムにpython3-gi, gir1.2-gtk-4.0がインストール済み
 - venvは`--system-site-packages`で作成
@@ -121,28 +121,38 @@ python -c "import sys; print('\n'.join(sys.path))"
 
 ## Phase 3で解決した問題
 
-### クリップボードコピーのタイムアウト
+### GTK4ネイティブクリップボードAPIへの移行
+**背景**: 従来はxclipコマンドを使用していたが、外部依存を削減するためGTK4の`Gdk.Clipboard` APIに移行
+
+**実装内容**:
+1. `GtkClipboardService`を新規作成
+2. 書き込み: `clipboard.set(text)` - 同期的に即座に完了
+3. 読み込み: `clipboard.read_text_async()` - 非同期APIを同期的にラップ
+   - `GLib.MainContext.pending()`でイベント処理
+   - タイムアウト5秒で安全に待機
+
+**影響ファイル**:
+- `mini_text/services/gtk_clipboard_service.py` (新規)
+- `main.py` (GtkClipboardServiceを注入)
+
+**メリット**:
+- xclip依存の削除
+- プロセス管理の簡素化
+- GTKネイティブ統合
+
+### 過去の問題（xclip使用時）
 **症状**: テキスト送信時に「クリップボードへのコピーに失敗しました: コマンドがタイムアウトしました」エラー
 
 **原因**: xclipはクリップボード所有権を保持し続けるためプロセスが終了せず、`subprocess.run()`が待機し続ける
 
-**解決策**:
-1. `subprocess.Popen()`でバックグラウンド起動
-2. `start_new_session=True`で別セッションとして起動
-3. `communicate(timeout=0.5)`でタイムアウトを正常と判断
-4. `-i`フラグを追加して明示的に入力モードを指定
-
-**影響ファイル**:
-- `mini_text/utils/x11_command_executor.py:25-61`
-- `mini_text/services/clipboard_service.py:27-30`
-- `tests/test_clipboard_service.py:32-33, 91-93`
+**旧解決策**: `subprocess.Popen()`でバックグラウンド起動（現在はGTK4 APIを使用）
 
 ## PyQt6実装との違い
 
 ### 解決された問題 ✓
 - **IME統合**: GTK4はfcitx5/mozcと安定して統合できる
 - **日本語入力**: PyQt6で発生していた問題が解決
-- **クリップボード操作**: xclipのバックグラウンド実行で安定動作
+- **クリップボード操作**: GTK4ネイティブAPIで安定動作（xclip不要）
 
 ### 動作の違い
 - メニューバーの代わりにメニューボタンを使用

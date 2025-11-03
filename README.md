@@ -1,47 +1,60 @@
 # mini-text
 
-Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受信を支援するPyQt6アプリケーション。
+Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受信を支援するアプリケーション。
 
-**現在のステータス**: Phase 3実装完了（基本UI動作確認済み、IME統合に既知の問題あり）
+**現在のステータス**: GTK4実装がPhase 3完了、完全動作（推奨） ✓
 
-## 必要要件
+## 実装バージョン
 
-- Python 3.9+
-- xdotool
-- xclip
-- PyQt6 6.6.0+
+### GTK4実装（推奨） ✓
 
-```bash
-sudo apt install xdotool xclip
-```
-
-## インストール
+- **ステータス**: Phase 3完了、完全動作
+- **場所**: `gtk4/`
+- **IME/日本語**: ✓ 動作
+- **依存**: xdotool, GTK4 (xclip不要)
 
 ```bash
-python3 -m venv venv
+cd gtk4
+sudo apt install xdotool python3-gi gir1.2-gtk-4.0
+python3 -m venv --system-site-packages venv
 source venv/bin/activate
 pip install -r requirements.txt
+python main.py
 ```
 
-## 実行
+詳細: `gtk4/README.md`
+
+### PyQt6実装（中断）
+
+- **ステータス**: Phase 3完了、但しIME動作せず
+- **場所**: `pyqt/`
+- **IME/日本語**: ✗ 動作しない
+- **理由**: venv環境でのIME統合問題
+
+詳細: `pyqt/README.md`, `docs/design/pyqt/ime-integration-issue.md`
+
+## クイックスタート（GTK4推奨）
 
 ```bash
-source venv/bin/activate
+cd gtk4
+source venv/bin/activate  # 初回は上記インストール手順を実行
 python main.py
 ```
 
 ## 機能
 
 - **ウィンドウ一覧表示**: デスクトップ上の全ウィンドウをリスト表示
-- **テキスト送信**: 選択したウィンドウにテキストを送信
-- **テキストコピー**: 選択したウィンドウからテキストを取得
-- **設定管理**: タイミング設定をGUIから変更可能
+- **テキスト送信**: 選択したウィンドウにテキストを送信（日本語対応）
+- **テキストコピー**: 選択したウィンドウからテキストを取得（日本語対応）
+- **IME統合**: fcitx5/mozcと統合（GTK4実装）
+- **設定管理**: タイミング設定をJSON設定ファイルで管理
 
-## テスト
+## テスト（GTK4）
 
 ```bash
+cd gtk4
 source venv/bin/activate
-python -m unittest discover -s tests -v
+pytest tests/ -v
 ```
 
 **テスト結果**: 全32テスト成功
@@ -50,32 +63,39 @@ python -m unittest discover -s tests -v
 
 `$HOME/.config/mini-text/config.json`
 
-## 既知の問題
+両実装（GTK4/PyQt6）で共有されます。
 
-### IME（日本語入力）が動作しない
-
-venv環境のPyQt6とシステムのfcitx5プラグインのバージョン不一致により、IMEが動作しません。
-
-**詳細**: `docs/design/ime-integration-issue.md`を参照
-
-**回避策**:
-- システムのPyQt6を使用する（`--system-site-packages`でvenv作成）
-- 英数字のみで動作確認を行う
-
-## 開発状況
+## 開発状況（GTK4実装）
 
 - [x] Phase 1: 基盤構築 (完了)
 - [x] Phase 2: サービスレイヤー実装 (完了)
-- [x] Phase 3: 基本UI実装 (完了 - IME問題あり)
+- [x] Phase 3: 基本UI実装 (完了・動作確認済み ✓)
+- [x] Phase 3.5: GTK4クリップボードAPI移行 (完了 ✓)
 - [ ] Phase 4: 設定機能実装
 - [ ] Phase 5: 改善・テスト
 
+## 技術的ハイライト（GTK4実装）
+
+- **SOLID原則**: サービスレイヤーの分離により、UI層とビジネスロジックが独立
+- **GTK4ネイティブAPI**: `Gdk.Clipboard`を使用し、xclip依存を削除
+- **IME完全統合**: fcitx5/mozcと問題なく動作
+- **pytest**: クリーンで保守性の高いテスト
+
 ## ドキュメント
 
+### 共通
 - `docs/design/application-idea.md` - アプリケーションアイディア
-- `docs/design/detailed-design.md` - 詳細設計書
-- `docs/design/ime-integration-issue.md` - IME統合の問題と解決策
-- `TESTING.md` - Phase 3動作確認手順
+- `CLAUDE.md` - Claude Codeのためのプロジェクト概要
+
+### GTK4実装
+- `gtk4/README.md` - GTK4実装の概要
+- `gtk4/TESTING.md` - 動作確認手順
+- `docs/design/gtk4-detailed-design.md` - GTK4詳細設計書
+
+### PyQt6実装（参考）
+- `pyqt/README.md` - PyQt6実装の概要
+- `docs/design/pyqt/detailed-design.md` - PyQt6詳細設計書
+- `docs/design/pyqt/ime-integration-issue.md` - IME統合の問題と解決策
 
 ## ライセンス
 

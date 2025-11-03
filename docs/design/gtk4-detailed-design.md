@@ -81,7 +81,8 @@ gtk4/
 │   ├── services/
 │   │   ├── __init__.py
 │   │   ├── window_service.py        # ウィンドウ操作 ※PyQt6から流用
-│   │   ├── clipboard_service.py     # クリップボード操作 ※PyQt6から流用
+│   │   ├── clipboard_service.py     # クリップボード操作(xclip版) ※PyQt6から流用
+│   │   ├── gtk_clipboard_service.py # クリップボード操作(GTK4版) ※新規実装
 │   │   └── text_service.py          # テキスト送受信統合 ※PyQt6から流用
 │   └── ui/
 │       ├── __init__.py
@@ -98,6 +99,7 @@ gtk4/
     ├── test_config_manager.py       # ※PyQt6から流用・修正
     ├── test_window_service.py       # ※PyQt6から流用・修正
     ├── test_clipboard_service.py    # ※PyQt6から流用・修正
+    ├── test_gtk_clipboard_service.py # ※手動テストのみ
     └── test_text_service.py         # ※PyQt6から流用・修正
 ```
 
@@ -201,11 +203,201 @@ status_label = Gtk.Label(label="メッセージ")
 status_label.set_halign(Gtk.Align.START)
 ```
 
+## クリップボード実装の移行計画
+
+### 背景
+
+現在の実装ではxclipコマンドを使用してクリップボード操作を行っていますが、GTK4には`Gdk.Clipboard` APIが用意されており、外部コマンドへの依存を削減できます。
+
+### GTK4 Gdk.Clipboard API概要
+
+#### 取得方法
+
+```python
+import gi
+gi.require_version('Gdk', '4.0')
+from gi.repository import Gdk
+
+# デフォルトディスプレイからクリップボードを取得
+display = Gdk.Display.get_default()
+clipboard = display.get_clipboard()  # CLIPBOARD selection
+# または
+primary_clipboard = display.get_primary_clipboard()  # PRIMARY selection
+```
+
+#### 書き込み（同期）
+
+```python
+# テキストをクリップボードにコピー
+clipboard.set(text)  # 同期的に実行可能
+```
+
+#### 読み込み（非同期のみ）
+
+```python
+# コールバック方式
+def on_read_finish(_clipboard, async_result):
+    text = clipboard.read_text_finish(async_result)
+    if text is not None:
+        # テキスト処理
+        pass
+
+clipboard.read_text_async(None, on_read_finish)
+```
+
+### 実装方針
+
+#### GtkClipboardServiceの作成
+
+新しい`GtkClipboardService`を作成し、既存の`ClipboardService`インターフェースを維持します（DIP原則）。
+
+```python
+"""GTK4 Gdk.Clipboardを使用したクリップボードサービス"""
+from typing import Optional
+import gi
+gi.require_version('Gdk', '4.0')
+from gi.repository import Gdk, GLib
+
+
+class GtkClipboardService:
+    """GTK4 Gdk.Clipboardを使用したクリップボード操作サービス"""
+
+    def __init__(self, clipboard: Optional[Gdk.Clipboard] = None):
+        """
+        Args:
+            clipboard: Gdk.Clipboardインスタンス（Noneの場合はデフォルトを使用）
+        """
+        if clipboard is None:
+            display = Gdk.Display.get_default()
+            self.clipboard = display.get_clipboard()
+        else:
+            self.clipboard = clipboard
+
+    def copy_to_clipboard(self, text: str) -> tuple[bool, str]:
+        """
+        クリップボードにテキストをコピー（同期）
+
+        Args:
+            text: コピーするテキスト
+
+        Returns:
+            tuple[bool, str]: (成功したか, エラーメッセージ)
+        """
+        try:
+            self.clipboard.set(text)
+            return True, ""
+        except Exception as e:
+            return False, f"クリップボードへのコピーに失敗しました: {str(e)}"
+
+    def get_from_clipboard(self) -> tuple[bool, str, str]:
+        """
+        クリップボードからテキストを取得（同期）
+
+        注意: GTK4のAPIは非同期のみだが、GLib.MainContextを使用して同期的に待機
+
+        Returns:
+            tuple[bool, str, str]: (成功したか, テキスト, エラーメッセージ)
+        """
+        try:
+            # 結果を格納する変数
+            result = {"text": None, "error": None}
+
+            def on_read_finish(_clipboard, async_result):
+                """非同期読み込み完了時のコールバック"""
+                try:
+                    text = self.clipboard.read_text_finish(async_result)
+                    result["text"] = text if text is not None else ""
+                except Exception as e:
+                    result["error"] = str(e)
+
+            # 非同期読み込み開始
+            self.clipboard.read_text_async(None, on_read_finish)
+
+            # メインループで結果を待機
+            context = GLib.MainContext.default()
+            while result["text"] is None and result["error"] is None:
+                context.iteration(True)
+
+            if result["error"]:
+                return False, "", f"クリップボードからの取得に失敗しました: {result['error']}"
+
+            return True, result["text"], ""
+
+        except Exception as e:
+            return False, "", f"クリップボードからの取得に失敗しました: {str(e)}"
+```
+
+#### 依存性注入の変更
+
+`main.py`で`GtkClipboardService`を使用:
+
+```python
+from mini_text.services.gtk_clipboard_service import GtkClipboardService
+
+# アプリケーション初期化時
+display = Gdk.Display.get_default()
+clipboard = display.get_clipboard()
+clipboard_service = GtkClipboardService(clipboard)
+text_service = TextService(window_service, clipboard_service, executor)
+```
+
+#### TextServiceの変更は不要
+
+`TextService`は抽象的な`clipboard_service`に依存しているため（DIP原則）、注入するサービスを変更するだけで動作します。
+
+### メリット
+
+1. **外部依存の削減**: xclipコマンドへの依存がなくなる
+2. **シンプルな実装**: バックグラウンドプロセス管理が不要
+3. **GTK統合**: ネイティブなGTK4機能を使用
+4. **保守性向上**: Pythonコードのみで完結
+
+### 注意点
+
+1. **非同期処理**:
+   - GTK4の読み込みAPIは非同期のみ
+   - `GLib.MainContext`で同期的に待機する実装を採用
+   - UIスレッドをブロックする可能性があるが、クリップボード読み込みは高速なため実用上問題なし
+
+2. **クリップボード所有権**:
+   - GTK4は自動的にクリップボード所有権を管理
+   - xclipのような明示的なバックグラウンドプロセスは不要
+   - アプリケーション終了後もクリップボードは保持される（GTK4の仕様）
+
+3. **テスト**:
+   - GTK環境が必要なため、単体テストが複雑化
+   - 複雑なセットアップが必要なテストは手動で実施
+
+### 移行状況
+
+✅ **完了** (2025-11-03)
+
+1. ✅ **Phase 1**: `GtkClipboardService`を新規作成
+2. ✅ **Phase 2**: `main.py`で`GtkClipboardService`を使用するように変更
+3. ✅ **Phase 3**: 実際の環境で手動テスト（日本語テキストを含む）
+   - テキスト送信機能: 正常動作
+   - テキストコピー機能: 正常動作
+   - 日本語テキスト: 正常動作
+   - 既存テスト32件: 全て成功
+
+### 現在の状態
+
+xclip依存は実質的に削除されました：
+- ✅ `GtkClipboardService`が実装され、使用されている
+- ✅ `main.py`は`GtkClipboardService`を注入
+- ✅ README, CLAUDE.md, TESTING.mdからxclip依存を削除
+- ⚠️ レガシーコードが残存（参考用、削除可能）:
+  - `mini_text/services/clipboard_service.py` (xclip版、未使用)
+  - `mini_text/utils/x11_command_executor.py` (xclip特殊処理含む)
+  - `DependencyChecker` (xclipチェック含む)
+
 ## クラス設計
 
 ### UIレイヤー以外はPyQt6と同一
 
-`ConfigManager`, `X11CommandExecutor`, `DependencyChecker`, `WindowService`, `ClipboardService`, `TextService`の設計はPyQt6実装のドキュメント（`docs/design/pyqt/detailed-design.md`）を参照。
+`ConfigManager`, `X11CommandExecutor`, `DependencyChecker`, `WindowService`, ~~`ClipboardService`~~, `TextService`の設計はPyQt6実装のドキュメント（`docs/design/pyqt/detailed-design.md`）を参照。
+
+**注意**: `ClipboardService`は上記の`GtkClipboardService`に置き換えられます。
 
 ### GTK4 UI実装
 
@@ -503,7 +695,8 @@ pytest-cov>=3.0.0
 sudo apt install libgirepository1.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0
 
 # ランタイム依存
-sudo apt install xdotool xclip
+sudo apt install xdotool
+# 注: xclipは将来的にGtkClipboardServiceへの移行後に不要になる予定
 
 # Glade（オプション、UIファイル編集用）
 sudo apt install glade

@@ -16,11 +16,12 @@ Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受�
 - Python 3.9+
 - GTK 4.0+
 - xdotool
-- xclip
 
 ```bash
-sudo apt install xdotool xclip python3-gi gir1.2-gtk-4.0
+sudo apt install xdotool python3-gi gir1.2-gtk-4.0
 ```
+
+**注**: xclipは不要になりました（GTK4の`Gdk.Clipboard` APIを使用）
 
 ### Python依存関係
 ```bash
@@ -34,7 +35,7 @@ pip install -r requirements.txt
 
 ```bash
 # システムパッケージのインストール
-sudo apt install xdotool xclip python3-gi gir1.2-gtk-4.0
+sudo apt install xdotool python3-gi gir1.2-gtk-4.0
 
 # プロジェクトのセットアップ
 cd gtk4
@@ -90,16 +91,28 @@ PyQt6実装と設定ファイルを共有できます。
 - ✓ ウィンドウサイズ保存・復元
 - ✓ エラーハンドリング
 
-## 実装中に解決した問題
+## 実装の改善
 
-### クリップボードコピーのタイムアウト
+### GTK4ネイティブクリップボードAPIの採用
+
+**背景**: 従来はxclipコマンドを使用していたが、外部依存を削減するためGTK4の`Gdk.Clipboard` APIに移行
+
+**実装**: `GtkClipboardService`を新規作成し、DIP原則に基づいて`TextService`に注入
+
+**メリット**:
+- xclip依存の削除（外部コマンド依存が減少）
+- より直接的なGTK統合
+- プロセス管理の簡素化
+
+**詳細**: `mini_text/services/gtk_clipboard_service.py`参照
+
+### 過去の問題（xclip使用時）
+
 **症状**: テキスト送信時に「クリップボードへのコピーに失敗しました: コマンドがタイムアウトしました」エラー
 
 **原因**: xclipはクリップボード所有権を保持し続けるためプロセスが終了せず、`subprocess.run()`が待機し続ける
 
-**解決策**: `subprocess.Popen()`でバックグラウンド起動し、`communicate(timeout=0.5)`でタイムアウトを正常と判断
-
-**詳細**: `mini_text/utils/x11_command_executor.py:25-61`参照
+**旧解決策**: `subprocess.Popen()`でバックグラウンド起動（現在はGTK4 APIを使用）
 
 ## ドキュメント
 
@@ -113,10 +126,10 @@ SOLID原則に基づいた設計：
 
 - **設定レイヤー**: `ConfigManager` (JSON設定管理)
 - **ユーティリティレイヤー**: `X11CommandExecutor`, `DependencyChecker`
-- **サービスレイヤー**: `WindowService`, `ClipboardService`, `TextService`
+- **サービスレイヤー**: `WindowService`, `GtkClipboardService`, `TextService`
 - **UIレイヤー**: GTK4ベースの`MainWindow`
 
-PyQt6実装から、サービスレイヤー以下を流用しています（ファイルは独立）。
+PyQt6実装から、サービスレイヤー以下の基本設計を流用していますが、クリップボード実装はGTK4ネイティブAPIに置き換えられています。
 
 ## PyQt6実装との比較
 

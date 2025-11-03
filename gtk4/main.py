@@ -4,13 +4,14 @@
 import sys
 import gi
 gi.require_version('Gtk', '4.0')
-from gi.repository import Gtk, Gio
+gi.require_version('Gdk', '4.0')
+from gi.repository import Gtk, Gdk, Gio
 
 from mini_text.utils.dependency_checker import DependencyChecker
 from mini_text.utils.x11_command_executor import X11CommandExecutor
 from mini_text.config.config_manager import ConfigManager
 from mini_text.services.window_service import WindowService
-from mini_text.services.clipboard_service import ClipboardService
+from mini_text.services.gtk_clipboard_service import GtkClipboardService
 from mini_text.services.text_service import TextService
 from mini_text.ui.main_window import MainWindow
 
@@ -51,7 +52,12 @@ class MiniTextApplication(Gtk.Application):
 
         # サービスを作成
         self.window_service = WindowService(executor)
-        clipboard_service = ClipboardService(executor)
+
+        # GTK4 Clipboardサービスを使用
+        display = Gdk.Display.get_default()
+        clipboard = display.get_clipboard()
+        clipboard_service = GtkClipboardService(clipboard)
+
         self.text_service = TextService(self.window_service, clipboard_service, executor)
 
     def do_activate(self):
