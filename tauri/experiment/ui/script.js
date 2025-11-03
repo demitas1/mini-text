@@ -1,5 +1,5 @@
-// Tauri APIのインポート
-import { writeText, readText } from '@tauri-apps/plugin-clipboard-manager';
+// Tauri APIをグローバルオブジェクトから取得
+const { writeText, readText } = window.__TAURI_PLUGIN_CLIPBOARD_MANAGER__;
 
 // DOM要素の取得
 const textArea = document.getElementById('mainTextArea');
