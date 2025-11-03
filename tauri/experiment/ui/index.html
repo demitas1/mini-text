@@ -1,39 +1,33 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
-  </head>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tauri Clipboard & IME Test</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tauri Clipboard & IME Test</h1>
 
-  <body>
-    <main class="container">
-      <h1>Welcome to Tauri</h1>
+        <div class="text-area-container">
+            <textarea
+                id="mainTextArea"
+                placeholder="ここに文字を入力してください...&#x0A;日本語入力（ひらがな、漢字）をテストできます。"
+                rows="10"
+            ></textarea>
+        </div>
 
-      <div class="row">
-        <a href="https://tauri.app" target="_blank">
-          <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a
-          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-          target="_blank"
-        >
-          <img
-            src="/assets/javascript.svg"
-            class="logo vanilla"
-            alt="JavaScript logo"
-          />
-        </a>
-      </div>
-      <p>Click on the Tauri logo to learn more about the framework</p>
+        <div class="button-container">
+            <button id="sendButton" class="btn btn-primary">送信（クリップボードへコピー）</button>
+            <button id="copyButton" class="btn btn-secondary">コピー（クリップボードから貼り付け）</button>
+        </div>
 
-      <form class="row" id="greet-form">
-        <input id="greet-input" placeholder="Enter a name..." />
-        <button type="submit">Greet</button>
-      </form>
-      <p id="greet-msg"></p>
-    </main>
-  </body>
+        <div class="status-container">
+            <p id="statusMessage">ステータス: 待機中</p>
+        </div>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
 </html>
