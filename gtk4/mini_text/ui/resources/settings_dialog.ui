@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="SettingsDialog" parent="GtkDialog">
+    <property name="title">設定</property>
+    <property name="modal">True</property>
+    <property name="default-width">500</property>
+    <property name="default-height">300</property>
+    <child type="titlebar">
+      <object class="GtkHeaderBar">
+        <property name="show-title-buttons">True</property>
+      </object>
+    </child>
+    <child internal-child="content_area">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <property name="margin-start">24</property>
+        <property name="margin-end">24</property>
+        <property name="margin-top">24</property>
+        <property name="margin-bottom">24</property>
+
+        <!-- タイトル -->
+        <child>
+          <object class="GtkLabel">
+            <property name="label">タイミング設定</property>
+            <property name="halign">start</property>
+            <property name="margin-bottom">6</property>
+            <style>
+              <class name="title-2"/>
+            </style>
+          </object>
+        </child>
+
+        <!-- 説明 -->
+        <child>
+          <object class="GtkLabel">
+            <property name="label">各操作の待機時間を秒単位で設定します</property>
+            <property name="halign">start</property>
+            <property name="margin-bottom">12</property>
+            <style>
+              <class name="dim-label"/>
+            </style>
+          </object>
+        </child>
+
+        <!-- 設定項目グリッド -->
+        <child>
+          <object class="GtkGrid">
+            <property name="row-spacing">12</property>
+            <property name="column-spacing">12</property>
+
+            <!-- ウィンドウアクティブ化待機時間 -->
+            <child>
+              <object class="GtkLabel">
+                <property name="label">ウィンドウアクティブ化待機:</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="window_activate_spin">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0.1</property>
+                    <property name="upper">5.0</property>
+                    <property name="value">0.3</property>
+                    <property name="step-increment">0.1</property>
+                    <property name="page-increment">0.5</property>
+                  </object>
+                </property>
+                <property name="digits">1</property>
+                <property name="value">0.3</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">秒</property>
+                <property name="halign">start</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">0</property>
+                </layout>
+              </object>
+            </child>
+
+            <!-- キー入力待機時間 -->
+            <child>
+              <object class="GtkLabel">
+                <property name="label">キー入力待機:</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="key_input_spin">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0.1</property>
+                    <property name="upper">5.0</property>
+                    <property name="value">0.3</property>
+                    <property name="step-increment">0.1</property>
+                    <property name="page-increment">0.5</property>
+                  </object>
+                </property>
+                <property name="digits">1</property>
+                <property name="value">0.3</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">秒</property>
+                <property name="halign">start</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">1</property>
+                </layout>
+              </object>
+            </child>
+
+            <!-- コピー開始待機時間 -->
+            <child>
+              <object class="GtkLabel">
+                <property name="label">コピー開始待機:</property>
+                <property name="halign">end</property>
+                <layout>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSpinButton" id="copyfrom_spin">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">1.0</property>
+                    <property name="upper">10.0</property>
+                    <property name="value">3.0</property>
+                    <property name="step-increment">0.5</property>
+                    <property name="page-increment">1.0</property>
+                  </object>
+                </property>
+                <property name="digits">1</property>
+                <property name="value">3.0</property>
+                <layout>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel">
+                <property name="label">秒</property>
+                <property name="halign">start</property>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">2</property>
+                </layout>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+    <!-- ボタン -->
+    <child internal-child="action_area">
+      <object class="GtkBox">
+        <property name="spacing">6</property>
+        <property name="margin-start">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-top">12</property>
+        <property name="margin-bottom">12</property>
+        <child>
+          <object class="GtkButton" id="cancel_button">
+            <property name="label">キャンセル</property>
+            <property name="hexpand">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton" id="ok_button">
+            <property name="label">OK</property>
+            <property name="hexpand">True</property>
+            <style>
+              <class name="suggested-action"/>
+            </style>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

@@ -1,10 +1,19 @@
 """テキスト送受信統合サービス"""
 
 import time
-from typing import Optional
+from typing import Optional, Protocol
 from mini_text.utils.x11_command_executor import X11CommandExecutor
 from mini_text.services.window_service import WindowService
-from mini_text.services.clipboard_service import ClipboardService
+
+
+class ClipboardServiceProtocol(Protocol):
+    """クリップボードサービスのプロトコル（型ヒント用）"""
+
+    def copy_to_clipboard(self, text: str) -> tuple[bool, str]:
+        ...
+
+    def get_from_clipboard(self) -> tuple[bool, str, str]:
+        ...
 
 
 class TextService:
@@ -12,19 +21,19 @@ class TextService:
 
     def __init__(
         self,
-        window_service: Optional[WindowService] = None,
-        clipboard_service: Optional[ClipboardService] = None,
+        window_service: Optional[WindowService],
+        clipboard_service: ClipboardServiceProtocol,
         executor: Optional[X11CommandExecutor] = None,
     ):
         """
         Args:
             window_service: ウィンドウ操作サービス（Noneの場合はデフォルトを使用）
-            clipboard_service: クリップボード操作サービス（Noneの場合はデフォルトを使用）
+            clipboard_service: クリップボード操作サービス
             executor: コマンド実行ユーティリティ（Noneの場合はデフォルトを使用）
         """
         self.executor = executor or X11CommandExecutor()
         self.window_service = window_service or WindowService(self.executor)
-        self.clipboard_service = clipboard_service or ClipboardService(self.executor)
+        self.clipboard_service = clipboard_service
 
     def send_text(
         self, window_id: str, text: str, activate_wait: float, key_wait: float

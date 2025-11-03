@@ -4,10 +4,10 @@ import shutil
 
 
 class DependencyChecker:
-    """xdotool/xclipのインストール確認を行うクラス"""
+    """xdotoolのインストール確認を行うクラス"""
 
     # 必要な外部コマンドのリスト
-    REQUIRED_COMMANDS = ["xdotool", "xclip"]
+    REQUIRED_COMMANDS = ["xdotool"]
 
     @staticmethod
     def check_dependencies() -> tuple[bool, list[str]]:

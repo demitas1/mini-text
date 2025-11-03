@@ -14,6 +14,7 @@ from mini_text.services.window_service import WindowService
 from mini_text.services.gtk_clipboard_service import GtkClipboardService
 from mini_text.services.text_service import TextService
 from mini_text.ui.main_window import MainWindow
+from mini_text.ui.settings_dialog import SettingsDialog
 
 
 class MiniTextApplication(Gtk.Application):
@@ -78,15 +79,10 @@ class MiniTextApplication(Gtk.Application):
 
     def on_settings_action(self, action, param):
         """設定アクション"""
-        # Phase 4で実装
-        dialog = Gtk.MessageDialog(
-            transient_for=self.main_window,
-            modal=True,
-            message_type=Gtk.MessageType.INFO,
-            buttons=Gtk.ButtonsType.OK,
-            text="設定機能はPhase 4で実装されます"
+        dialog = SettingsDialog(
+            parent=self.main_window,
+            config_manager=self.config_manager
         )
-        dialog.connect("response", lambda d, r: d.close())
         dialog.present()
 
     def on_quit_action(self, action, param):
