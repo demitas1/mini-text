@@ -14,9 +14,23 @@ Linux X11デスクトップ環境で、ウィンドウ間のテキスト送受�
 - **設定機能**: ✓ 実装済み
 - **依存**: xdotool, GTK4 (xclip不要)
 
+**ラッパースクリプトを使用（推奨）**:
+```bash
+# システム依存関係のインストール
+sudo apt install xdotool python3-gi gir1.2-gtk-4.0
+
+# アプリケーション実行（初回は自動セットアップ）
+./mini-text-gtk4.sh
+
+# その他のオプション
+./mini-text-gtk4.sh --setup   # セットアップのみ
+./mini-text-gtk4.sh --test    # テスト実行
+./mini-text-gtk4.sh --help    # ヘルプ表示
+```
+
+**手動実行**:
 ```bash
 cd gtk4
-sudo apt install xdotool python3-gi gir1.2-gtk-4.0
 python3 -m venv --system-site-packages venv
 source venv/bin/activate
 pip install -r requirements.txt
@@ -36,6 +50,12 @@ python main.py
 
 ## クイックスタート（GTK4推奨）
 
+**ラッパースクリプト使用**:
+```bash
+./mini-text-gtk4.sh
+```
+
+**手動実行**:
 ```bash
 cd gtk4
 source venv/bin/activate  # 初回は上記インストール手順を実行
